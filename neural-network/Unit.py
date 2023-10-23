@@ -1,8 +1,7 @@
-import random
 import numpy as np
 import random
 
-from activation import ReLU, Activation
+from activation import Activation, Identity
 
 class Unit:
     """
@@ -13,42 +12,34 @@ class Unit:
     - bias: same as weights
     """
     
-    def __init__(self, activation = None, inputs = None, weights = None, bias = None):
+    def __init__(self, activation = Identity, weights = [], bias = 0):
         self.activation = activation
-        self.inputs     = inputs
         self.weights    = weights
         self.bias       = bias
         
-        if not self.activation is None and not isinstance(self.activation, Activation):
+        if not issubclass(self.activation, Activation):
             raise Exception("Activation function not valid.")
-
-        # if weights is None:
-        #     self.weights = np.random.rand(len(self.inputs))
             
-        # if bias is None:
-        #     self.bias = np.random.rand()
-            
-    
-    def assert_inputs_type(self):
+    def assert_inputs_type(self, inputs):
         """
         Check input for the unit has the proper type.
         If the type has not a numerical value raise an error
         """
         
-        if isinstance(self.inputs, list): return True
-        if isinstance(self.inputs, np.ndarray): return True
+        if isinstance(inputs, list): return True
+        if isinstance(inputs, np.ndarray): return True
         
-        if isinstance(self.inputs, float):
-            self.inputs = np.array(self.inputs)
+        if isinstance(inputs, float):
+            inputs = np.array(inputs)
             return True
         
-        if isinstance(self.inputs, int):
-            self.inputs = np.array(self.inputs)
+        if isinstance(inputs, int):
+            inputs = np.array(inputs)
             return True
         
         raise "Input type is not valid."
         
-    def compute_output(self):
+    def compute(self, inputs):
         """
         Compute the output of the neuron.
         1. Performs dot product over inputs and weights.
@@ -56,10 +47,22 @@ class Unit:
         3. Apply activation function.
         """
         
-        self.output = np.dot(self.inputs, self.weights) + self.bias
+        self.assert_inputs_type(inputs)
         
-        if not self.activation is None:
-            self.output = self.activation(self.output).apply()
+        self.output = inputs
+        
+        if len(self.weights) > 0:
+            
+            if len(self.weights) != len(inputs):
+                raise Exception("Dimension mismatch, input vector sized %s while current unit has %s weights." % (len(inputs), len(self.weights)))
+            
+            self.output = np.dot(self.output, self.weights)
+        
+        self.output += self.bias
+        self.output  = self.activation.apply(self.output)
         
         return self.output
     
+    def initialize_parameters(self, previous_layer_units_amount):
+        self.weights = np.random.rand(previous_layer_units_amount)
+        self.bias    = np.random.rand()
