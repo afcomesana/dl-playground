@@ -12,10 +12,11 @@ class Unit:
     - bias: same as weights
     """
     
-    def __init__(self, activation = Identity, weights = [], bias = 0):
+    def __init__(self, activation = Identity, weights = np.array([]), bias = 0):
         self.activation = activation
         self.weights    = weights
         self.bias       = bias
+        self.gradient   = None
         
         if not issubclass(self.activation, Activation):
             raise Exception("Activation function not valid.")
@@ -49,16 +50,20 @@ class Unit:
         
         self.assert_inputs_type(inputs)
         
-        self.output = inputs
+        self.inputs = self.output = inputs
+        
         
         if len(self.weights) > 0:
             
-            if len(self.weights) != len(inputs):
-                raise Exception("Dimension mismatch, input vector sized %s while current unit has %s weights." % (len(inputs), len(self.weights)))
+            if len(self.weights) != len(self.inputs):
+                raise Exception("Dimension mismatch, input vector sized %s while current unit has %s weights." % (len(self.inputs), len(self.weights)))
             
-            self.output = np.dot(self.output, self.weights)
+            self.output = np.dot(self.inputs, self.weights)
         
         self.output += self.bias
+        
+        self.linear_sum = self.output
+        
         self.output  = self.activation.apply(self.output)
         
         return self.output
@@ -66,3 +71,11 @@ class Unit:
     def initialize_parameters(self, previous_layer_units_amount):
         self.weights = np.random.rand(previous_layer_units_amount)
         self.bias    = np.random.rand()
+        
+    def update_parameters(self, learning_rate = 0.1):
+        if self.gradient is None: return
+        # Update bias:
+        self.bias -= self.gradient*learning_rate
+        
+        # Update weights
+        self.weights -= np.array(self.gradient*learning_rate)

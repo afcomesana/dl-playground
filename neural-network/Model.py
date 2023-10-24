@@ -1,3 +1,5 @@
+import numpy as np
+
 from Layer import Layer
 
 class Model:
@@ -21,8 +23,34 @@ class Model:
         self.layers += [layer]
         
     def predict(self, inputs):
-        output = inputs
-        for layer in self.layers:
-            output = layer.compute(output)
+        
+        output = np.array(inputs)
+        
+        print(output.ndim)
+        # output = np.array([layer.compute(output) for layer in self.layers])
             
         return output
+    
+    def train(self, inputs, target, loss, learning_rate=0.1):
+        # Batch training:
+        if inputs.ndim > 1:
+            pass
+        y_hat = self.predict(inputs)
+        self.backpropagation(np.matrix(loss(target, y_hat).gradient))
+        # print("Target:", target, "\nPrediction:", y_hat, "\nLoss:", loss(target, y_hat).loss, "\nGradient:",loss(target, y_hat).loss)
+        # print()
+        
+        [unit.update_parameters(learning_rate=learning_rate) for layer in self.layers for unit in layer.units]
+        
+    def backpropagation(self, gradient):
+        # Iterate over the layers of the model in reversed order (do not iterate over the input layer)
+        for layer in list(reversed(self.layers))[:-1]:
+            layer_gradient = []
+            for index, unit in enumerate(layer.units):
+                unit.gradient = gradient[:, index]
+                unit.gradient = np.sum(unit.gradient * unit.activation.gradient(unit.linear_sum))
+                layer_gradient += [unit.gradient*unit.weights]
+                
+                # Derivative of the output of the unit with respect to its dot product
+            
+            gradient = np.matrix(layer_gradient)

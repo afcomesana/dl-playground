@@ -14,6 +14,10 @@ class Activation:
         Default method is Identity.
         """
         return value
+    
+    @staticmethod
+    def gradient(value):
+        return 1
         
     @classmethod
     def apply(cls, inputs):
@@ -31,16 +35,18 @@ class ReLU(Activation):
     def compute(value):
         return max(0, value)
     
-class LogisticSigmoid(Activation):
+    def gradient(value):
+        if value <= 0: return 0
+        return 1
+    
+class Sigmoid(Activation):
     @staticmethod
     def compute(value):
         return 1/(1 + pow(math.e,-value))
     
     @staticmethod
     def gradient(value):
-        return pow(math.e, value) / pow(1 + pow(math.e, value), 2)
+        return pow(math.e, -value) / pow(1 + pow(math.e, -value), 2)
     
 class Identity(Activation):
-    @staticmethod
-    def compute(value):
-        return value
+    pass
