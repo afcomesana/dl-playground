@@ -40,7 +40,7 @@ class Unit:
         
         raise "Input type is not valid."
         
-    def compute(self, inputs):
+    def compute(self, inputs, verbose=False):
         """
         Compute the output of the neuron.
         1. Performs dot product over inputs and weights.
@@ -54,7 +54,6 @@ class Unit:
         
         
         if len(self.weights) > 0:
-            
             if len(self.weights) != len(self.inputs):
                 raise Exception("Dimension mismatch, input vector sized %s while current unit has %s weights." % (len(self.inputs), len(self.weights)))
             
@@ -64,8 +63,11 @@ class Unit:
         
         self.linear_sum = self.output
         
+        if verbose:
+            print(self.linear_sum)
+            
         self.output  = self.activation.apply(self.output)
-        
+    
         return self.output
     
     def initialize_parameters(self, previous_layer_units_amount):

@@ -4,52 +4,56 @@ from loss_functions import CrossEntropy, MeanSquaredError
 
 from activation import ReLU, Activation, Sigmoid
 import numpy as np
+import pandas as pd
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-dataset = {
-    "inputs": [
-        [1, 1],
-        [1, 0],
-        [0, 1],
-        [0, 0],
-    ],
-    "targets": [0, 1, 1, 0]
-}
+df = pd.read_csv("diabetes.csv")
 
-X_train = np.round(np.random.rand(100, 2))
-X_train = np.column_stack((X_train, list(map(lambda sample: int(sample[0])^int(sample[1]), X_train))))
+# Remove all rows with potentially missing values:
+for col in ["Pregnancies","BloodPressure","SkinThickness","Insulin","BMI","DiabetesPedigreeFunction","Age"]:
+    df = df.loc[df[col] != 0, :]
+    
+X_train = df.loc[:300, :]
+X_test  = df.loc[300:,:]
 
-batch = X_train
-np.random.shuffle(batch)
-batch = batch[:10]
+X_train_data   = np.array(X_train.loc[:,X_train.columns != "Outcome"])
+X_train_target = np.array(X_train["Outcome"])
+
+X_test_data   = np.array(X_test.loc[:,X_test.columns != "Outcome"])
+X_test_target = np.array(X_test["Outcome"])
+
+rows, cols = X_train_data.shape
 
 model = Model()
-model.add(InputLayer(2))
-model.add(DenseLayer(4, Sigmoid))
+model.add(InputLayer(cols))
+model.add(DenseLayer(4, ReLU))
 model.add(DenseLayer(1, Sigmoid))
 
-model.train(batch[0:5, :-1], batch[0, -1], CrossEntropy)
+print(X_train_data[0, :], X_train_target[0])
 
-# print("Predictions pre-training:")
-# for sample, target in zip(dataset["inputs"], dataset["targets"]):
-#     y_hat = model.predict(sample)
-#     print("Prediction:", y_hat, "\nTarget:", target)
-#     print()
-    
+model.info()
+model.train(X_train_data[0, :], X_train_target[0], CrossEntropy)
 
-# for i in range(1000):
-#     for sample, target in zip(dataset["inputs"], dataset["targets"]):
-#         model.train(sample, target, CrossEntropy)
+model.info()
+model.train(X_train_data[0, :], X_train_target[0], CrossEntropy)
 
-# print("Predictions post-training:")
-# for sample, target in zip(dataset["inputs"], dataset["targets"]):
-#     y_hat = model.predict(sample)
-#     print("Prediction:", y_hat, "\nTarget:", target)
-#     print()
+model.info()
+model.train(X_train_data[0, :], X_train_target[0], CrossEntropy)
 
-# # print("Target:",dataset["targets"][0], "\nOutput:", y_hat,"\nCalculated loss:",ce.loss,"\nGradient:", ce.gradient)
+model.info()
+model.train(X_train_data[0, :], X_train_target[0], CrossEntropy)
+
+# for epoch in range(100):
+#     for row in range(rows):
+#         model.train(X_train_data[row, :], X_train_target[row], CrossEntropy)
+        
+# for row in range(len(X_test_data)):
+#     y_hat = model.predict(X_test_data[row, :])
+#     print("Predicted: %s (%s)" % (y_hat, X_test_target[row]))
+
+
 
 # plt.figure(figsize=(10, 10))
 # plt.axis("scaled")

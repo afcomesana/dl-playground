@@ -1,6 +1,6 @@
 import numpy as np
 
-from Layer import Layer
+from Layer import Layer, InputLayer
 
 class Model:
     def __init__(self, layers=[]):
@@ -26,15 +26,16 @@ class Model:
         
         output = np.array(inputs)
         
-        print(output.ndim)
-        # output = np.array([layer.compute(output) for layer in self.layers])
+        for layer in self.layers:
+            output = layer.compute(output)
             
-        return output
+        return np.array(output)
     
     def train(self, inputs, target, loss, learning_rate=0.1):
         # Batch training:
         if inputs.ndim > 1:
             pass
+        
         y_hat = self.predict(inputs)
         self.backpropagation(np.matrix(loss(target, y_hat).gradient))
         # print("Target:", target, "\nPrediction:", y_hat, "\nLoss:", loss(target, y_hat).loss, "\nGradient:",loss(target, y_hat).loss)
@@ -51,6 +52,24 @@ class Model:
                 unit.gradient = np.sum(unit.gradient * unit.activation.gradient(unit.linear_sum))
                 layer_gradient += [unit.gradient*unit.weights]
                 
-                # Derivative of the output of the unit with respect to its dot product
-            
             gradient = np.matrix(layer_gradient)
+            
+
+    def info(self):
+        
+        print("\n\nTotal layers in the model:", len(self.layers), "\n")
+        
+        print(" ==> ".join(["%s (%s units)" % (type(layer).__name__, layer.units_amount) for layer in self.layers]))
+        
+        for index, layer in enumerate(self.layers):
+            if isinstance(layer, InputLayer): continue
+            print()
+            print(index, type(layer).__name__, ":")
+            
+            for index, unit in enumerate(layer.units):
+                print()
+                print(index+1, "Unit(", type(unit.activation).__name__,")")
+                print("Weights:", unit.weights)
+                print("Bias", unit.bias)
+            
+        print("\n")
