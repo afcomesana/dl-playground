@@ -1,7 +1,7 @@
 import numpy as np
 
 from Layer import Layer, InputLayer
-
+from loss_functions import CrossEntropy
 class Model:
     def __init__(self, layers=[]):
         self.layers = []
@@ -31,12 +31,32 @@ class Model:
             
         return np.array(output)
     
+    def get_digits_amount(value):
+        value = str(value)
+        digits = re.search(r"e(\+|\-)[0-9]+", value)
+        if digits is None:
+            return len(str(int(float(value))))
+        
+        digits = digits.group(0)
+        digits = int(digits[1:])
+        
+        return digits
+    
     def train(self, inputs, target, loss, learning_rate=0.1):
         # Batch training:
         if inputs.ndim > 1:
             pass
         
-        y_hat = self.predict(inputs)
+        if issubclass(loss, CrossEntropy):
+            y_hat = inputs
+            for index, layer in enumerate(self.layers):
+                y_hat = layer.compute(y_hat, apply_activation=len(self.layers) != index + 1)
+                print(y_hat, len(self.layers) == index + 1)
+
+        else:
+            y_hat = self.predict(inputs)
+        
+        print("Training:",loss(target, y_hat).loss, loss(target, y_hat).gradient)
         self.backpropagation(np.matrix(loss(target, y_hat).gradient))
         # print("Target:", target, "\nPrediction:", y_hat, "\nLoss:", loss(target, y_hat).loss, "\nGradient:",loss(target, y_hat).loss)
         # print()
@@ -44,6 +64,7 @@ class Model:
         [unit.update_parameters(learning_rate=learning_rate) for layer in self.layers for unit in layer.units]
         
     def backpropagation(self, gradient):
+        # print("Initial gradient:", gradient)
         # Iterate over the layers of the model in reversed order (do not iterate over the input layer)
         for layer in list(reversed(self.layers))[:-1]:
             layer_gradient = []
@@ -51,7 +72,8 @@ class Model:
                 unit.gradient = gradient[:, index]
                 unit.gradient = np.sum(unit.gradient * unit.activation.gradient(unit.linear_sum))
                 layer_gradient += [unit.gradient*unit.weights]
-                
+
+            # print("Layer gradient", layer_gradient)
             gradient = np.matrix(layer_gradient)
             
 

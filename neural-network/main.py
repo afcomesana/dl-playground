@@ -5,10 +5,11 @@ from loss_functions import CrossEntropy, MeanSquaredError
 from activation import ReLU, Activation, Sigmoid
 import numpy as np
 import pandas as pd
+import re
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import inspect
 df = pd.read_csv("diabetes.csv")
 
 # Remove all rows with potentially missing values:
@@ -31,19 +32,12 @@ model.add(InputLayer(cols))
 model.add(DenseLayer(4, ReLU))
 model.add(DenseLayer(1, Sigmoid))
 
-print(X_train_data[0, :], X_train_target[0])
+model.train(X_train_data[0,:], X_train_target[0], CrossEntropy)
 
-model.info()
-model.train(X_train_data[0, :], X_train_target[0], CrossEntropy)
-
-model.info()
-model.train(X_train_data[0, :], X_train_target[0], CrossEntropy)
-
-model.info()
-model.train(X_train_data[0, :], X_train_target[0], CrossEntropy)
-
-model.info()
-model.train(X_train_data[0, :], X_train_target[0], CrossEntropy)
+# for i in range(10):
+#     print(model.predict(X_train_data[0, :]))
+#     model.train(X_train_data[0, :], X_train_target[0], CrossEntropy)
+    
 
 # for epoch in range(100):
 #     for row in range(rows):

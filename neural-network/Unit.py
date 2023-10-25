@@ -40,7 +40,7 @@ class Unit:
         
         raise "Input type is not valid."
         
-    def compute(self, inputs, verbose=False):
+    def compute(self, inputs, apply_activation=True, verbose=False):
         """
         Compute the output of the neuron.
         1. Performs dot product over inputs and weights.
@@ -62,11 +62,9 @@ class Unit:
         self.output += self.bias
         
         self.linear_sum = self.output
-        
-        if verbose:
-            print(self.linear_sum)
-            
-        self.output  = self.activation.apply(self.output)
+
+        if apply_activation:
+            self.output  = self.activation.apply(self.output)
     
         return self.output
     

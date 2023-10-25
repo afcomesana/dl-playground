@@ -19,13 +19,13 @@ class Layer:
         
 class InputLayer(Layer):
         
-    def compute(self, inputs, verbose=False):
+    def compute(self, inputs, apply_activation=True, verbose=False):
         output = [unit.compute(value) for value, unit in zip(inputs, self.units)]
         return np.array(output) if isinstance(inputs, np.ndarray) else output
 
 class DenseLayer(Layer):
-    def compute(self, inputs, verbose=False):
-        output = [unit.compute(inputs, verbose=verbose) for unit in self.units]
+    def compute(self, inputs, apply_activation=True, verbose=False):
+        output = [unit.compute(inputs, apply_activation=apply_activation, verbose=verbose) for unit in self.units]
         
         if len(output) == 1: return output[0]
         

@@ -1,20 +1,27 @@
 import math
 import sys
 
-class CrossEntropy:
-    def __init__(self, target, output):
-        
-        # Prevent underflow
-        output_comp = 1 - output
-        
-        if output == 0:
-            output = sys.float_info.min
-            
-        if output_comp == 0:
-            output_comp = sys.float_info.min
+from activation import Activation, Sigmoid
 
-        self.loss = -(target*math.log(output) + (1 - target)*math.log(output_comp))
-        self.gradient = ( (1 - target)/(output_comp) ) - (target / output)
+class CrossEntropy:
+    
+    def __init__(self, target, output, activation = Activation):
+        
+        offset = sys.float_info.min
+        
+        if issubclass(activation, Sigmoid):
+            ###################################################################################
+            # IMPORTANT: In this case, output should be the input of the activation function, #
+            # not the output of the activation function.                                      #
+            ###################################################################################
+            self.loss     = target*math.log(1 + pow(math.e, -output)) + (1 - target)*(output + math.log(1 + pow(math.e, -output)))
+            self.gradient = -(target/(1 + pow(math.e, -output))) + (1 - target)*(1 - 1/(1 + pow(math.e, -output)))
+            
+        else:
+            # Normal calculation for the binary cross entropy
+            self.loss     = -(target*math.log(output + offset) + (1 - target)*math.log(1 - output + offset))
+            self.gradient = ( (1 - target)/(1 - output + offset) ) - (target / (output + offset))
+
 
 class MeanSquaredError:
     def __init__(self, target, output):
