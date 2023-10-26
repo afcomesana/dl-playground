@@ -1,9 +1,16 @@
 import numpy as np
+import re
+import matplotlib.pyplot as plt
+import seaborn as sns
+from functools import reduce
 
 from Layer import Layer, InputLayer
+from activation import Sigmoid
 from loss_functions import CrossEntropy
+
 class Model:
     def __init__(self, layers=[]):
+        self.min_loss = 1e-07
         self.layers = []
         [self.add(layer) for layer in layers]
         
@@ -42,38 +49,78 @@ class Model:
         
         return digits
     
-    def train(self, inputs, target, loss, learning_rate=0.1):
-        # Batch training:
-        if inputs.ndim > 1:
-            pass
+    def train(self, inputs, target, loss_class, learning_rate=0.1, verbose=False):
+        # TODO: Generalize special case for more-than-one-unit output layers
+
+        shortcut = False
         
-        if issubclass(loss, CrossEntropy):
+        output_activations = [unit.activation for unit in self.layers[-1].units]
+        
+        # Special case:
+        # - Loss function is cross entropy
+        # - Last layer activation function is Sigmoid
+        if issubclass(loss_class, CrossEntropy) and all(issubclass(activation, Sigmoid) for activation in output_activations):
+            
+            shortcut = True
+            
             y_hat = inputs
             for index, layer in enumerate(self.layers):
                 y_hat = layer.compute(y_hat, apply_activation=len(self.layers) != index + 1)
-                print(y_hat, len(self.layers) == index + 1)
 
         else:
             y_hat = self.predict(inputs)
+
         
-        print("Training:",loss(target, y_hat).loss, loss(target, y_hat).gradient)
-        self.backpropagation(np.matrix(loss(target, y_hat).gradient))
-        # print("Target:", target, "\nPrediction:", y_hat, "\nLoss:", loss(target, y_hat).loss, "\nGradient:",loss(target, y_hat).loss)
-        # print()
+        if len(output_activations) == 1:
+            output_activations = output_activations[0]
+            
+        loss = loss_class(target, y_hat, output_activations)
+        gradient = loss.gradient
+        loss     = loss.loss
+        
+        if loss < self.min_loss: return
+        
+        if verbose:
+            print("\n=======================================================\n")
+            print(inputs, y_hat)
+            print(loss, gradient)
+            self.info()
+            
+        self.backpropagation(np.matrix(gradient), shortcut=shortcut)
         
         [unit.update_parameters(learning_rate=learning_rate) for layer in self.layers for unit in layer.units]
+        if verbose: self.info()
         
-    def backpropagation(self, gradient):
-        # print("Initial gradient:", gradient)
+    def backpropagation(self, gradient, shortcut=False):
+        """
+        Naïve implementation of the backpropagation algorithm.
+        
+        Parameters:
+        - gradient: gradient of the loss function with respect to the output of the model.
+        - shortcut: in case a special derivative calculation has been made, this parameter must
+          be set to True, in order to not compute again the derivative of the activation function
+          in the first layer (last layer going forward)
+          
+        """
+        
         # Iterate over the layers of the model in reversed order (do not iterate over the input layer)
-        for layer in list(reversed(self.layers))[:-1]:
+        for index, layer in enumerate(list(reversed(self.layers))[:-1]):
+            
             layer_gradient = []
+            
             for index, unit in enumerate(layer.units):
+                # Incoming gradient
                 unit.gradient = gradient[:, index]
-                unit.gradient = np.sum(unit.gradient * unit.activation.gradient(unit.linear_sum))
+                
+                if not shortcut or index > 0:
+                    # Gradient of the incoming gradient with respect to the activation function of the unit
+                    unit.gradient = unit.gradient * unit.activation.gradient(unit.linear_sum)
+                
+                unit.gradient = np.sum(unit.gradient)
+                
+                # Gradient to pass on to the next layer (previous layer actually since we are going backwards):
                 layer_gradient += [unit.gradient*unit.weights]
 
-            # print("Layer gradient", layer_gradient)
             gradient = np.matrix(layer_gradient)
             
 

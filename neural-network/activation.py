@@ -24,11 +24,8 @@ class Activation:
         if isinstance(inputs, list) or isinstance(inputs, np.ndarray):
             output = map(lambda value: cls.compute(value), inputs)
             return list(output) if isinstance(inputs, list) else np.array(output)
-        
-        if isinstance(inputs, int) or isinstance(inputs, float):
-            return cls.compute(inputs)
-        
-        raise "Don't know how to process input."
+
+        return cls.compute(inputs)
 
 class ReLU(Activation):
     @staticmethod

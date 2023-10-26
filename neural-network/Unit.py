@@ -12,7 +12,7 @@ class Unit:
     - bias: same as weights
     """
     
-    def __init__(self, activation = Identity, weights = np.array([]), bias = 0):
+    def __init__(self, activation = Identity, weights = np.array([]), bias = None):
         self.activation = activation
         self.weights    = weights
         self.bias       = bias
@@ -21,24 +21,6 @@ class Unit:
         if not issubclass(self.activation, Activation):
             raise Exception("Activation function not valid.")
             
-    def assert_inputs_type(self, inputs):
-        """
-        Check input for the unit has the proper type.
-        If the type has not a numerical value raise an error
-        """
-        
-        if isinstance(inputs, list): return True
-        if isinstance(inputs, np.ndarray): return True
-        
-        if isinstance(inputs, float):
-            inputs = np.array(inputs)
-            return True
-        
-        if isinstance(inputs, int):
-            inputs = np.array(inputs)
-            return True
-        
-        raise "Input type is not valid."
         
     def compute(self, inputs, apply_activation=True, verbose=False):
         """
@@ -48,7 +30,6 @@ class Unit:
         3. Apply activation function.
         """
         
-        self.assert_inputs_type(inputs)
         
         self.inputs = self.output = inputs
         
@@ -59,7 +40,9 @@ class Unit:
             
             self.output = np.dot(self.inputs, self.weights)
         
-        self.output += self.bias
+
+        if not self.bias is None:        
+            self.output += self.bias
         
         self.linear_sum = self.output
 
@@ -69,13 +52,19 @@ class Unit:
         return self.output
     
     def initialize_parameters(self, previous_layer_units_amount):
-        self.weights = np.random.rand(previous_layer_units_amount)
-        self.bias    = np.random.rand()
+        
+        if len(self.weights) == 0:
+            self.weights = np.random.rand(previous_layer_units_amount)
+            
+        if self.bias is None:
+            self.bias = np.random.rand()
         
     def update_parameters(self, learning_rate = 0.1):
         if self.gradient is None: return
+        
+        
+        
         # Update bias:
         self.bias -= self.gradient*learning_rate
-        
         # Update weights
-        self.weights -= np.array(self.gradient*learning_rate)
+        self.weights -= np.array(self.inputs*self.gradient*learning_rate)

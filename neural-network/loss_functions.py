@@ -15,8 +15,9 @@ class CrossEntropy:
             # not the output of the activation function.                                      #
             ###################################################################################
             self.loss     = target*math.log(1 + pow(math.e, -output)) + (1 - target)*(output + math.log(1 + pow(math.e, -output)))
-            self.gradient = -(target/(1 + pow(math.e, -output))) + (1 - target)*(1 - 1/(1 + pow(math.e, -output)))
+            self.gradient = -((target*pow(math.e, -output))/(1 + pow(math.e, -output))) + (1 - target)*(1 - pow(math.e, -output)/(1 + pow(math.e, -output)))
             
+
         else:
             # Normal calculation for the binary cross entropy
             self.loss     = -(target*math.log(output + offset) + (1 - target)*math.log(1 - output + offset))
@@ -24,6 +25,6 @@ class CrossEntropy:
 
 
 class MeanSquaredError:
-    def __init__(self, target, output):
+    def __init__(self, target, output, activation = Activation):
         self.loss = 0.5*pow(output - target, 2)
         self.gradient = 2*(output - target)
