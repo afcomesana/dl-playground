@@ -104,15 +104,15 @@ class Model:
         """
         
         # Iterate over the layers of the model in reversed order (do not iterate over the input layer)
-        for index, layer in enumerate(list(reversed(self.layers))[:-1]):
+        for layer_index, layer in enumerate(list(reversed(self.layers))[:-1]):
             
             layer_gradient = []
             
-            for index, unit in enumerate(layer.units):
+            for unit_index, unit in enumerate(layer.units):
                 # Incoming gradient
-                unit.gradient = gradient[:, index]
+                unit.gradient = gradient[:, unit_index]
                 
-                if not shortcut or index > 0:
+                if not shortcut or layer_index > 0:
                     # Gradient of the incoming gradient with respect to the activation function of the unit
                     unit.gradient = unit.gradient * unit.activation.gradient(unit.linear_sum)
                 

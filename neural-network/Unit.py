@@ -62,8 +62,6 @@ class Unit:
     def update_parameters(self, learning_rate = 0.1):
         if self.gradient is None: return
         
-        
-        
         # Update bias:
         self.bias -= self.gradient*learning_rate
         # Update weights
