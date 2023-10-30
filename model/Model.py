@@ -1,12 +1,9 @@
 import numpy as np
 import re
-import matplotlib.pyplot as plt
-import seaborn as sns
-from functools import reduce
 
-from Layer import Layer, InputLayer
-from activation import Sigmoid
-from loss_functions import CrossEntropy
+from .Layer import Layer, InputLayer
+from .activation import Sigmoid
+from .loss_functions import CrossEntropy
 
 class Model:
     def __init__(self, layers=[]):

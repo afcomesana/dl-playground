@@ -1,7 +1,7 @@
 import math
 import sys
 
-from activation import Activation, Sigmoid
+from .activation import Activation, Sigmoid
 
 class CrossEntropy:
     

@@ -1,7 +1,7 @@
 import numpy as np
 import random
 
-from activation import Activation, Identity
+from .activation import Activation, Identity
 
 class Unit:
     """

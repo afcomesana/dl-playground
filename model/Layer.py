@@ -1,7 +1,7 @@
 import numpy as np
 
-from activation import Activation, Identity
-from Unit import Unit
+from .activation import Activation, Identity
+from .Unit import Unit
 
 class Layer:
     def __init__(self, units_amount, activation = Identity, weights=np.array([]), bias=np.array([])):
